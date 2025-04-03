@@ -9,6 +9,7 @@
 */
 
 #load "./chatgpt-data.csx"
+// TODO: 
 
 using System;
 using System.IO;
@@ -46,7 +47,7 @@ async Task AskChatGpt(string prompt, string filename, string debugFlag)
         {
             model = "gpt-4o",
             messages = new[] { new { role = "user", content = prompt } },
-            max_tokens = 5000
+            max_tokens = 500
         };
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
