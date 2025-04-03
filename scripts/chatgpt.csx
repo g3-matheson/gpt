@@ -99,9 +99,8 @@ void PrintMessages(IEnumerable<string> messages)
 void WriteMessagesToFile(string prompt, IEnumerable<string> messages, string filename)
 {
     string writePath = Path.Combine(ResponseFolder, filename);
-    List<string> output = new() { $"===Prompt===\n{prompt}\n===Response===\n" };
+    List<string> output = new() { $"===Prompt===\n{prompt}\n\n===Response===" };
     output.AddRange(messages);
-    output.Add("\n\n");
 
     if(!File.Exists(writePath))
     {
@@ -111,7 +110,8 @@ void WriteMessagesToFile(string prompt, IEnumerable<string> messages, string fil
     {
         File.AppendAllLines(writePath, output);
     }
-    
+
+    File.AppendAllText(writePath, Environment.NewLine);
 }
 
 string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".txt";
