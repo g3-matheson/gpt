@@ -1,0 +1,16 @@
+TODO:
+    * chatgpt-parser.csx: parsing CLI arguments
+        * --context ("messages" can have multiple inputs from different roles)
+            roles:
+                system: 
+                    - set the behavior or context for the model
+                    - guideline for how model should act / persona it should adopt
+                user:
+                    - end user message, prompt
+                assistant(?)
+                    - model's responses during the conversation
+                    - outputs generatd by the model based on 'user' input guided by 'system' input
+                    - warrants more reading...
+        * --max-tokens
+        * --tokens-left ?
+    * chatgpt-session.csx: use prior messages as context for continued convo 

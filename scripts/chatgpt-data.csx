@@ -1,10 +1,8 @@
 /*
     Data Structures for chatgpt.csx
 */
-using System;
+
 using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 class ResponseWrapper
