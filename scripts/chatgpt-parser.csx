@@ -13,8 +13,12 @@ public class ArgumentParser
     // input arguments
     public string Model { get; private set; }
     public int MaxTokens { get; private set; }
+
+    // Sets behavioral context/guidelines
     public string SystemMessage { get; private set; }
     public string UserMessage { get; private set; }
+
+    // Model's responses fed back into itself?
     public string AssistantMessage { get; private set; }
        
     // flags

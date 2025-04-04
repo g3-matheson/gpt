@@ -1,11 +1,6 @@
 /*
-    Usage:
-        Call from CLI with:
-        
-            gpt [prompt] [filename] [-d]
-        
-        filename is optional: will default to {current datetime}.txt
-        -d is for debug: prints GPT response .json
+    ChatGPT C# Wrapper
+    Kat Matheson 
 */
 
 #load "./chatgpt-data.csx"
