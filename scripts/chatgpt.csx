@@ -4,6 +4,7 @@
 */
 
 #load "./chatgpt-data.csx"
+#load "./chatgpt-parser.csx"
 
 using System.IO;
 using System.Net.Http;
