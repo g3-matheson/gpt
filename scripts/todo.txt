@@ -1,4 +1,11 @@
 TODO:
+== short-term
+    * parser: add 'read from this file" functionality
+    * finish IArgumentParser so that it can use the implied inherited _flags    
+
+
+== long-term
     * Rewrite .sh components to allow for any input, that is then parsed by chatgpt-parser.csx
     * chatgpt-session.csx: use prior messages as context for continued convo
         -- call when required as per parsing results
+

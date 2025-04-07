@@ -19,28 +19,31 @@ string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.Speci
 
 if (Args.Count < 1)
 {
-    Console.WriteLine("Usage: gpt 'prompt' 'filename(opt)'");
+    Console.WriteLine("Usage: gpt --q \"prompt\" --max-tokens MaxTokens --f \"filename\"");
     return;
 }
 
-string prompt = Args[0];
-string filename = Args.Count > 1 ? Args[1] : string.Empty;
-string debugFlag = Args.Count > 2 ? Args[2] : string.Empty;
+if(GPTArgumentParser.Instance.TryParse(Args))
+{
+    await AskChatGpt();
+}
 
-await AskChatGpt(prompt, filename, debugFlag);
+// await AskChatGpt(Args.Aggregate((string s1, string s2)  ));
 
-async Task AskChatGpt(string prompt, string filename, string debugFlag)
+async Task AskChatGpt()
 {
     try
     {
-        using HttpClient client = new HttpClient();
+        GPTArgumentParser args = GPTArgumentParser.Instance;
+
+        using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
         
         var requestBody = new
         {
-            model = "gpt-4o",
-            messages = new[] { new { role = "user", content = prompt } },
-            max_tokens = 500
+            model = args.Model,
+            messages = new[] { new { role = "user", content = args.UserMessage } },
+            max_tokens = args.MaxTokens
         };
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
@@ -51,11 +54,6 @@ async Task AskChatGpt(string prompt, string filename, string debugFlag)
     
         string jsonResponse = await response.Content.ReadAsStringAsync();
         var gptResponse = JsonSerializer.Deserialize<ResponseWrapper>(jsonResponse);
-    
-        if (debugFlag == "-d")
-        {
-            Console.WriteLine(jsonResponse);
-        }
 
         if (gptResponse.Choices == null || gptResponse.Choices.Count == 0)
         {
@@ -63,24 +61,17 @@ async Task AskChatGpt(string prompt, string filename, string debugFlag)
             return;
         }
     
-        List<string> messages = gptResponse.Choices.Select(choice => choice.Response.Message).ToList();
+        List<string> messages = gptResponse.Choices.Select(
+            choice => string.Concat($"({choice.Index}/{gptResponse.Choices.Count})",
+                                    choice.Response.Message, Environment.NewLine)).ToList();
         PrintMessages(messages);
-        WriteMessagesToFile(prompt, messages, string.IsNullOrEmpty(filename) ? GetFilename() : filename);
+        WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error: {ex.Message}");
+        Console.WriteLine(GPTArgumentParser.Instance.ToString());
     }
-}
-
-List<string> ExtractMessages(ResponseWrapper response) 
-{
-    List<string> messages = new();
-    foreach (ResponseChoice choice in response.Choices)
-    {
-        messages.Append($"({choice.Index}): {choice.Response.Message}");
-    }
-    return messages;
 }
 
 void PrintMessages(IEnumerable<string> messages)
