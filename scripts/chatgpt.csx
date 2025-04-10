@@ -15,7 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 readonly string ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-readonly string OpenAPILink = "https://api.openai.com/v1/chat/completions";
+readonly string ApiURL = "https://api.openai.com/v1/chat/completions";
 string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
 
 if (Args.Count < 1)
