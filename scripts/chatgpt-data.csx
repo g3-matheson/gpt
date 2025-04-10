@@ -43,16 +43,12 @@ class ResponseTokenUsage
     [JsonPropertyName("completion_tokens_details")] public Dictionary<string, int> CompletionTokensDetails { get; set; }
 }
 
-class GPTJson
+public class GPTJson
 {
-    public GPTJson()
-    {
-        Messages = new List<GPTMessage>();
-    }
     [JsonPropertyName("messages")] public List<GPTMessage> Messages { get; set; }
 }
 
-class GPTMessage
+public class GPTMessage
 {
     [JsonPropertyName("role")] public GPTMessageRole Role { get; set; }
     [JsonPropertyName("content")] public string Message { get; set; }
@@ -60,7 +56,7 @@ class GPTMessage
     [JsonPropertyName("tokens-used-out")] public int TokensOut { get; set; }
 }
 
-enum GPTMessageRole
+public enum GPTMessageRole
 {
     System,
     User,

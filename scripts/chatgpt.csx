@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 readonly string ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 readonly string ApiURL = "https://api.openai.com/v1/chat/completions";
-string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
+
 
 if (Args.Count < 1)
 {
@@ -68,7 +68,8 @@ async Task AskChatGpt(IList<string> cliArgs)
             choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
                                     choice.Response.Message, Environment.NewLine)).ToList();
         PrintMessages(messages);
-        WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
+        //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
+        // TODO replace with chatgpt-io.SaveFile
     }
     catch (Exception ex)
     {
@@ -85,22 +86,5 @@ void PrintMessages(IEnumerable<string> messages)
     }
 }
 
-void WriteMessagesToFile(string prompt, IEnumerable<string> messages, string filename)
-{
-    string writePath = Path.Combine(ResponseFolder, filename);
-    List<string> output = new() { $"===Prompt===\n{prompt}\n\n===Response===" };
-    output.AddRange(messages);
-
-    if(!File.Exists(writePath))
-    {
-        File.WriteAllLines(writePath, output);
-    }    
-    else
-    {
-        File.AppendAllLines(writePath, output);
-    }
-
-    File.AppendAllText(writePath, Environment.NewLine);
-}
 
 string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".txt";
