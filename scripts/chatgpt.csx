@@ -49,7 +49,7 @@ async Task AskChatGpt(IList<string> cliArgs)
         string jsonRequest = JsonSerializer.Serialize(requestBody);
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
     
-        HttpResponseMessage response = await client.PostAsync(OpenAPILink, content);
+        HttpResponseMessage response = await client.PostAsync(ApiURL, content);
         response.EnsureSuccessStatusCode();
     
         string jsonResponse = await response.Content.ReadAsStringAsync();
