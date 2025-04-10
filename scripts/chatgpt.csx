@@ -38,13 +38,13 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
-        
+
         var requestBody = new
         {
             model = args.Model,
             messages = new[] {  new { role = "user", content = args.UserMessage } },
             max_tokens = args.MaxTokens
-        };
+        }; 
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");

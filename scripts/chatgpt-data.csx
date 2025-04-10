@@ -45,6 +45,10 @@ class ResponseTokenUsage
 
 class GPTJson
 {
+    public GPTJson()
+    {
+        Messages = new List<GPTMessage>();
+    }
     [JsonPropertyName("messages")] public List<GPTMessage> Messages { get; set; }
 }
 

@@ -61,7 +61,7 @@ public class GPTArgumentParser : IArgumentParser
 
     // input arguments
     public string Model { get; private set; } = "gpt-4o";
-    public int MaxTokens { get; private set; } = _defaultMaxTokens; // out, not in
+    public int MaxTokens { get; private set; } = _defaultMaxTokens;
 
     // Sets behavioral context/guidelines
     public string SystemMessage { get; private set; }
@@ -83,19 +83,15 @@ public class GPTArgumentParser : IArgumentParser
         { "--f",
             (string s) => { Instance.Filename = s; }},
         { "--max-tokens",
-            (string s) => { Instance.MaxTokens = Int32.TryParse(s, out int opt) ? opt : _defaultMaxTokens; }},  
+            (string s) => Instance.SetMaxTokens(s) },  
+        { "--mt",
+            (string s) => Instance.SetMaxTokens(s) },
         { "-used",
             (string s) => { Instance.TokensUsed = true; }}, 
         { "--continue",
-            (string s) => { 
-                Instance.ContinueChatFromFile = Boolean.TryParse(s, out bool result) && result; 
-                // AssistantMessage = ...
-                    /* - open file, explain context to chatgpt in system message that you are
-                        sending it previous responses and prompts -- TBD what AssistantMessage role is in this
-                                                                    -- i.e: send only gpt responses? they need link to prompts
-                    - 
-                */
-                }},
+            (string s) => { Instance.ContinueChatFromFile = true; Instance.Filename = s; }},
+        { "--c",
+            (string s) => { Instance.ContinueChatFromFile = true; Instance.Filename = s; }}
     };
 
     public override string ToString()
@@ -107,6 +103,11 @@ public class GPTArgumentParser : IArgumentParser
         sb.AppendLine($"TokensUsed: {TokensUsed}");
 
         return sb.ToString();
+    }
+
+    private void SetMaxTokens(string s)
+    {
+        MaxTokens = Int32.TryParse(s, out int i) ? i : _defaultMaxTokens;
     }
 
     private static readonly int _defaultMaxTokens = 1000;
