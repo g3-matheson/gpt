@@ -109,16 +109,6 @@ public class GPTArgumentParser : IArgumentParser
         return sb.ToString();
     }
 
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
-
     private static readonly int _defaultMaxTokens = 1000;
 }
 
