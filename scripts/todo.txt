@@ -1,11 +1,36 @@
-TODO:
-== short-term
-    * parser: add 'read from this file" functionality
-    * finish IArgumentParser so that it can use the implied inherited _flags    
+=== TODO ===
+* parser: add 'read from this file" functionality
+    * use .json files for storage
+        * format: array of 
+        "message": 
+        {
+            "role": [role],
+            "content": [message content],
+            "tokens-used":
+            {
+                "in" : [response.TokenUsage.PromptTokens],
+                "out" : [response.TokenUsage.CompletionTokens]
+            }
+        }
+    * when reading in files, only send role and content to API
+    * when writing files, add in tokens-used section regardless of GPTArgumentParser.TokensUsed
+    * add function to file parser to get total tokens in the conversation
+            
+* "TokensUsed" can also accumulate over a file using the outputs
+    -- even if TokensUsed = false, the file can contain this information
+    -- but this would have to be data that is removed before sending to gpt   
 
+* change to dotnet build to speed up program, it's getting slower as more functionality is added
 
-== long-term
-    * Rewrite .sh components to allow for any input, that is then parsed by chatgpt-parser.csx
-    * chatgpt-session.csx: use prior messages as context for continued convo
-        -- call when required as per parsing results
-
+* code is sent by chatgpt as:
+```csharp 
+public class MyClass
+{
+    // ...
+}
+```
+    - this code found in the responses should appear as c-sharp code with coloring
+    - create .cs(x) files that suppress all warnings (since there will be errors)
+    - parse ```csharp { ... } ``` as code and make the rest comments
+        - save this in the response folder with the same filename but .cs
+    

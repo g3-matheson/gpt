@@ -3,6 +3,7 @@
 */
 
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json.Serialization;
 
 class ResponseWrapper
@@ -41,3 +42,32 @@ class ResponseTokenUsage
     [JsonPropertyName("prompt_tokens_details")] public Dictionary<string, int> PromptTokensDetails { get; set; }
     [JsonPropertyName("completion_tokens_details")] public Dictionary<string, int> CompletionTokensDetails { get; set; }
 }
+
+class GPTJson
+{
+    [JsonPropertyName("messages")] public List<GPTMessage> Messages { get; set; }
+}
+
+class GPTMessage
+{
+    [JsonPropertyName("role")] public GPTMessageRole Role { get; set; }
+    [JsonPropertyName("content")] public string Message { get; set; }
+    [JsonPropertyName("tokens-used-in")] public int TokensIn { get; set; }
+    [JsonPropertyName("tokens-used-out")] public int TokensOut { get; set; }
+}
+
+enum GPTMessageRole
+{
+    System,
+    User,
+    Assistant
+}
+ 
+Dictionary<GPTMessageRole, string> RoleStrings = new()
+{
+    { GPTMessageRole.System, "system" },
+    { GPTMessageRole.User, "user" },
+    { GPTMessageRole.Assistant, "assistant" } 
+};
+
+

@@ -14,7 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-string ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+readonly string ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+readonly string OpenAPILink = "https://api.openai.com/v1/chat/completions";
 string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
 
 if (Args.Count < 1)
@@ -25,12 +26,11 @@ if (Args.Count < 1)
 
 if(GPTArgumentParser.Instance.TryParse(Args))
 {
-    await AskChatGpt();
+    if (Args.Contains("-d")) Console.WriteLine($"{GPTArgumentParser.Instance.ToString()}\n");
+    await AskChatGpt(Args);
 }
 
-// await AskChatGpt(Args.Aggregate((string s1, string s2)  ));
-
-async Task AskChatGpt()
+async Task AskChatGpt(IList<string> cliArgs)
 {
     try
     {
@@ -42,14 +42,14 @@ async Task AskChatGpt()
         var requestBody = new
         {
             model = args.Model,
-            messages = new[] { new { role = "user", content = args.UserMessage } },
+            messages = new[] {  new { role = "user", content = args.UserMessage } },
             max_tokens = args.MaxTokens
         };
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
     
-        HttpResponseMessage response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
+        HttpResponseMessage response = await client.PostAsync(OpenAPILink, content);
         response.EnsureSuccessStatusCode();
     
         string jsonResponse = await response.Content.ReadAsStringAsync();
@@ -61,8 +61,11 @@ async Task AskChatGpt()
             return;
         }
     
+        if (args.TokensUsed) Console.WriteLine($"Tokens used: {gptResponse.TokenUsage.CompletionTokens}.\n");
+
+        int nChoices = gptResponse.Choices.Count;
         List<string> messages = gptResponse.Choices.Select(
-            choice => string.Concat($"({choice.Index}/{gptResponse.Choices.Count})",
+            choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
                                     choice.Response.Message, Environment.NewLine)).ToList();
         PrintMessages(messages);
         WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
