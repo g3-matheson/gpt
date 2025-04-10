@@ -1,1 +1,1 @@
-dotnet script ~/chatgpt/scripts/chatgpt.csx -- "$1" "$2" "${3:-""}"
+dotnet script ~/chatgpt/scripts/chatgpt.csx -- "$@"

@@ -11,50 +11,24 @@ using System.Collections.Generic;
 
 public abstract class IArgumentParser
 {
-    public bool TryParse(string input)
-    {
-        try
-        {
-            // check for errors / invalid format => return falsea
-            List<string> inputs = [.. input.Split(' ')];
-            bool isFlag;
-
-            for(int i = 0; i < inputs.Count; i++)
-            {
-                if (inputs[i][..2] == "--")
-                {
-                    isFlag = false;
-                    isFlag = _flags.TryGetValue(inputs[i][2..], out var flagCommand);
-                    flagCommand?.Invoke(inputs[++i]);
-                    if (flagCommand != null) i++;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"IArgument.TryParse() Error: {e.Message}");
-            return false;
-        }
-        
-        // if passes validation, parase
-        return true;
-    }
-
     public bool TryParse(IList<string> args)
     {
         try
         { 
-            bool isFlag;
-
             for(int i = 0; i < args.Count; i++)
             {
+                // flags with arguments: --[flag] [argument]
                 if (args[i].Length > 1 && args[i][..2] == "--")
                 {
-                    Console.WriteLine($"Found flag with value: {args[i]}");
-                    isFlag = _flags.TryGetValue(args[i], out var flagCommand);
-                    Console.WriteLine($"IsFlag: {isFlag}");
+                    Flags.TryGetValue(args[i], out var flagCommand);
                     flagCommand?.Invoke(args[++i]);
-                    if (flagCommand != null) i++;
+                }
+
+                // flags with no arguments: -[flag]
+                else if (args[i].Length > 0 && args[i][..1] == "-")
+                {
+                    Flags.TryGetValue(args[i], out var flagCommand);
+                    flagCommand?.Invoke(string.Empty);
                 }
             }
         }
@@ -67,7 +41,7 @@ public abstract class IArgumentParser
         return true;
     }
 
-    protected Dictionary<string, Action<string>> _flags;
+    protected abstract Dictionary<string, Action<string>> Flags { get; set; } 
 }
 
 public class GPTArgumentParser : IArgumentParser
@@ -98,18 +72,20 @@ public class GPTArgumentParser : IArgumentParser
 
     // flags
     public bool Debug { get; private set; } = false;
+    public bool TokensUsed { get; private set; } = false;
     public bool TokensLeft { get; private set; } = false;
     public bool ContinueChatFromFile { get; private set; } = false;
     public string Filename { get; set; }
-
-    public new Dictionary<string, Action<string>> _flags = new()
+    protected override Dictionary<string, Action<string>> Flags { get; set; } = new() 
     {
         { "--q", 
-            (string s) => { Instance.UserMessage = s; Console.WriteLine($"prompt set to: {s}"); }},
+            (string s) => { Instance.UserMessage = s; }},
         { "--f",
             (string s) => { Instance.Filename = s; }},
         { "--max-tokens",
-            (string s) => { Instance.MaxTokens = Int32.TryParse(s, out int opt) ? opt : _defaultMaxTokens; }},
+            (string s) => { Instance.MaxTokens = Int32.TryParse(s, out int opt) ? opt : _defaultMaxTokens; }},  
+        { "-used",
+            (string s) => { Instance.TokensUsed = true; }}, 
         { "--continue",
             (string s) => { 
                 Instance.ContinueChatFromFile = Boolean.TryParse(s, out bool result) && result; 
@@ -119,7 +95,7 @@ public class GPTArgumentParser : IArgumentParser
                                                                     -- i.e: send only gpt responses? they need link to prompts
                     - 
                 */
-                }}
+                }},
     };
 
     public override string ToString()
@@ -128,10 +104,21 @@ public class GPTArgumentParser : IArgumentParser
         sb.AppendLine($"Model: {Model}");
         sb.AppendLine($"Prompt: {UserMessage}");
         sb.AppendLine($"MaxTokens: {MaxTokens}");
+        sb.AppendLine($"TokensUsed: {TokensUsed}");
 
         return sb.ToString();
     }
 
-    private static readonly int _defaultMaxTokens = 500;
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    private static readonly int _defaultMaxTokens = 1000;
 }
 
