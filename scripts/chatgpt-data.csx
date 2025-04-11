@@ -50,10 +50,37 @@ public class GPTJson
 
 public class GPTMessage
 {
+    public GPTMessage() {}
+    public GPTMessage(GPTMessageRole role, string message, bool newMessage = false)
+    {
+        Role = role;
+        Message = message;
+        NewMessage = newMessage;
+    }
+
     [JsonPropertyName("role")] public GPTMessageRole Role { get; set; }
     [JsonPropertyName("content")] public string Message { get; set; }
     [JsonPropertyName("tokens-used-in")] public int TokensIn { get; set; }
     [JsonPropertyName("tokens-used-out")] public int TokensOut { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)] public bool NewMessage { get; set; }
+
+    public bool Equals(GPTMessage other)
+    {
+        if (other is null) return false;
+        if (this.Role == GPTMessageRole.System && other.Role == GPTMessageRole.System)
+        {
+            return true;
+        }
+        return Role == other.Role && Message == other.Message;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as GPTMessage);
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Role, Message);
+    }
+
 }
 
 public enum GPTMessageRole

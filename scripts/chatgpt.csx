@@ -35,29 +35,38 @@ async Task AskChatGpt(IList<string> cliArgs)
 {
     try
     {
+
         GPTArgumentParser args = GPTArgumentParser.Instance;
 
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
 
-
-        List<KeyValuePair<string,string>> messages = new();
+        List<GPTMessage> conversation = [];
 
         if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
         {
             GPTJson previousJson = LoadFile(args.Filename);
-            messages.AddRange(
-                previousJson.Messages.Select(
-                    gptMessage => new KeyValuePair<string,string>(RoleStrings[gptMessage.Role], gptMessage.Message)
-                ).ToList());
+            conversation.AddRange(previousJson.Messages);
         }
 
-        messages.Add( new KeyValuePair<string, string>("user", args.UserMessage));
+        List<GPTMessage> currentConversation =
+        [
+            new GPTMessage(GPTMessageRole.User, args.UserMessage)
+        ];
+
+        if (!string.IsNullOrEmpty(args.SystemMessage))
+        {  
+            // avoid duplicate system messages, keep it at the top
+            conversation.Remove(new GPTMessage(GPTMessageRole.System, string.Empty));
+            conversation.Insert(0, new GPTMessage(GPTMessageRole.System, args.SystemMessage, true));
+        }
+
+        conversation.Add(new GPTMessage(GPTMessageRole.User, args.UserMessage, true));
 
         var requestBody = new
         {
             model = args.Model,
-            messages,
+            messages = conversation,
             max_tokens = args.MaxTokens
         }; 
 
@@ -78,13 +87,13 @@ async Task AskChatGpt(IList<string> cliArgs)
     
         if (args.TokensUsed) Console.WriteLine($"Tokens used: {gptResponse.TokenUsage.CompletionTokens}.\n");
 
-        int nChoices = gptResponse.Choices.Count;
-        List<string> responses = gptResponse.Choices.Select(
-            choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
-                                    choice.Response.Message, Environment.NewLine)).ToList();
-        PrintResponses(responses);
+        PrintResponses(gptResponse.Choices);
+
         //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
         // TODO replace with chatgpt-io.SaveFile
+            // add TokenUsage to sent Prompt
+            // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
+            // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
     }
     catch (Exception ex)
     {
@@ -93,8 +102,14 @@ async Task AskChatGpt(IList<string> cliArgs)
     }
 }
 
-void PrintResponses(IEnumerable<string> responses)
+void PrintResponses(List<ResponseChoice> choices)
 {
+
+    int nChoices = choices.Count;
+    List<string> responses = choices.Select(
+        choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
+                                choice.Response.Message, Environment.NewLine)).ToList();
+
     foreach (string response in responses)
     {
         Console.WriteLine(response);
