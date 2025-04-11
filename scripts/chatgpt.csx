@@ -5,6 +5,7 @@
 
 #load "./chatgpt-data.csx"
 #load "./chatgpt-parser.csx"
+#load "./chatgpt-io.csx"
 
 using System.IO;
 using System.Net.Http;
@@ -39,10 +40,24 @@ async Task AskChatGpt(IList<string> cliArgs)
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
 
+
+        List<KeyValuePair<string,string>> messages = new();
+
+        if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
+        {
+            GPTJson previousJson = LoadFile(args.Filename);
+            messages.AddRange(
+                previousJson.Messages.Select(
+                    gptMessage => new KeyValuePair<string,string>(RoleStrings[gptMessage.Role], gptMessage.Message)
+                ).ToList());
+        }
+
+        messages.Add( new KeyValuePair<string, string>("user", args.UserMessage));
+
         var requestBody = new
         {
             model = args.Model,
-            messages = new[] {  new { role = "user", content = args.UserMessage } },
+            messages,
             max_tokens = args.MaxTokens
         }; 
 
@@ -64,10 +79,10 @@ async Task AskChatGpt(IList<string> cliArgs)
         if (args.TokensUsed) Console.WriteLine($"Tokens used: {gptResponse.TokenUsage.CompletionTokens}.\n");
 
         int nChoices = gptResponse.Choices.Count;
-        List<string> messages = gptResponse.Choices.Select(
+        List<string> responses = gptResponse.Choices.Select(
             choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
                                     choice.Response.Message, Environment.NewLine)).ToList();
-        PrintMessages(messages);
+        PrintResponses(responses);
         //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
         // TODO replace with chatgpt-io.SaveFile
     }
@@ -78,11 +93,11 @@ async Task AskChatGpt(IList<string> cliArgs)
     }
 }
 
-void PrintMessages(IEnumerable<string> messages)
+void PrintResponses(IEnumerable<string> responses)
 {
-    foreach (string message in messages)
+    foreach (string response in responses)
     {
-        Console.WriteLine(message);
+        Console.WriteLine(response);
     }
 }
 

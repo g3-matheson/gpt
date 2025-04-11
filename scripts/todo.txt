@@ -1,4 +1,16 @@
-=== TODO ===
+**** PRIO
+* change to dotnet build to speed up program, it's getting slower as more functionality is added
+    * the "#load" are also getting confusing, as well as naming -- might need services or events etc.
+    * this .exe is absolutely needed since a lot of work breaks gpt 
+        and then i can't call it while working on it    
+    * chatgpt instructions:
+        - dotnet new console -n GPT
+        - rename .csx to .cs
+        - Program.cs should have static void Main(string[] args)
+        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
+        - --self-contained false --> builds without .NET integrated inside
+            - don't forget to make it executable
+
 * parser: add 'read from this file" functionality
     * use .json files for storage
         * format: array of 
@@ -20,13 +32,3 @@
     -- even if TokensUsed = false, the file can contain this information
     -- but this would have to be data that is removed before sending to gpt   
 
-* change to dotnet build to speed up program, it's getting slower as more functionality is added
-    * this .exe is absolutely needed since a lot of work breaks gpt 
-        and then i can't call it while working on it    
-    * chatgpt instructions:
-        - dotnet new console -n GPT
-        - rename .csx to .cs
-        - Program.cs should have static void Main(string[] args)
-        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
-        - --self-contained false --> builds without .NET integrated inside
-            - don't forget to make it executable

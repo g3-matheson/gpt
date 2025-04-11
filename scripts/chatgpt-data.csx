@@ -63,7 +63,7 @@ public enum GPTMessageRole
     Assistant
 }
  
-Dictionary<GPTMessageRole, string> RoleStrings = new()
+public Dictionary<GPTMessageRole, string> RoleStrings = new()
 {
     { GPTMessageRole.System, "system" },
     { GPTMessageRole.User, "user" },
