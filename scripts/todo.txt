@@ -21,16 +21,12 @@
     -- but this would have to be data that is removed before sending to gpt   
 
 * change to dotnet build to speed up program, it's getting slower as more functionality is added
-
-* code is sent by chatgpt as:
-```csharp 
-public class MyClass
-{
-    // ...
-}
-```
-    - this code found in the responses should appear as c-sharp code with coloring
-    - create .cs(x) files that suppress all warnings (since there will be errors)
-    - parse ```csharp { ... } ``` as code and make the rest comments
-        - save this in the response folder with the same filename but .cs
-    
+    * this .exe is absolutely needed since a lot of work breaks gpt 
+        and then i can't call it while working on it    
+    * chatgpt instructions:
+        - dotnet new console -n GPT
+        - rename .csx to .cs
+        - Program.cs should have static void Main(string[] args)
+        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
+        - --self-contained false --> builds without .NET integrated inside
+            - don't forget to make it executable

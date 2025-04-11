@@ -78,16 +78,11 @@ public class GPTArgumentParser : IArgumentParser
     public string Filename { get; set; }
     protected override Dictionary<string, Action<string>> Flags { get; set; } = new() 
     {
-        { "--q", 
-            (string s) => { Instance.UserMessage = s; }},
-        { "--f",
-            (string s) => { Instance.Filename = s; }},
-        { "--max-tokens",
-            (string s) => Instance.SetMaxTokens(s) },  
-        { "--mt",
-            (string s) => Instance.SetMaxTokens(s) },
-        { "-used",
-            (string s) => { Instance.TokensUsed = true; }}, 
+        { "--q",            (string s) => { Instance.UserMessage = s; }},
+        { "--f",            (string s) => { Instance.Filename = s; }},
+        { "--max-tokens",   Instance.SetMaxTokens },  
+        { "--mt",           Instance.SetMaxTokens },
+        { "-used",          (string s) => { Instance.TokensUsed = true; }}, 
         { "--continue",
             (string s) => { Instance.ContinueChatFromFile = true; Instance.Filename = s; }},
         { "--c",
