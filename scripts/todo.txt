@@ -1,15 +1,5 @@
-**** PRIO
-* change to dotnet build to speed up program, it's getting slower as more functionality is added
-    * the "#load" are also getting confusing, as well as naming -- might need services or events etc.
-    * this .exe is absolutely needed since a lot of work breaks gpt 
-        and then i can't call it while working on it    
-    * chatgpt instructions:
-        - dotnet new console -n GPT
-        - rename .csx to .cs
-        - Program.cs should have static void Main(string[] args)
-        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
-        - --self-contained false --> builds without .NET integrated inside
-            - don't forget to make it executable
+**** in PRIO
+* implement GPTMessageRoleConverter.Read for incoming roles
 
 * parser: add 'read from this file" functionality
     * use .json files for storage
@@ -28,7 +18,21 @@
     * when writing files, add in tokens-used section regardless of GPTArgumentParser.TokensUsed
     * add function to file parser to get total tokens in the conversation
             
+* change to dotnet build to speed up program, it's getting slower as more functionality is added
+    * the "#load" are also getting confusing, as well as naming -- might need services or events etc.
+    * this .exe is absolutely needed since a lot of work breaks gpt 
+        and then i can't call it while working on it    
+    * chatgpt instructions:
+        - dotnet new console -n GPT
+        - rename .csx to .cs
+        - Program.cs should have static void Main(string[] args)
+        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
+        - --self-contained false --> builds without .NET integrated inside
+            - don't forget to make it executable
+
 * "TokensUsed" can also accumulate over a file using the outputs
     -- even if TokensUsed = false, the file can contain this information
     -- but this would have to be data that is removed before sending to gpt   
 
+* add Filename generation from ChatGPT itself. ask it what a 3 word summary would be for the convo,
+save the file as $"{date}-w1-w2-w3.json"

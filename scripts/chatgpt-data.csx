@@ -103,7 +103,7 @@ public class GPTMessageRoleConverter : JsonConverter<GPTMessageRole>
 {
     public override GPTMessageRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-       throw new NotImplementedException(); 
+       throw new NotImplementedException();
     }
 
     public override void Write(Utf8JsonWriter writer, GPTMessageRole value, JsonSerializerOptions options)
