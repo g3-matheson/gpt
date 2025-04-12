@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 class ResponseWrapper
@@ -58,7 +59,8 @@ public class GPTMessage
         NewMessage = newMessage;
     }
 
-    [JsonPropertyName("role")] public GPTMessageRole Role { get; set; }
+    [JsonPropertyName("role")][JsonConverter(typeof(GPTMessageRoleConverter))]
+    public GPTMessageRole Role { get; set; }
     [JsonPropertyName("content")] public string Message { get; set; }
     [JsonPropertyName("tokens-used-in")] public int TokensIn { get; set; }
     [JsonPropertyName("tokens-used-out")] public int TokensOut { get; set; }
@@ -90,11 +92,22 @@ public enum GPTMessageRole
     Assistant
 }
  
-public Dictionary<GPTMessageRole, string> RoleStrings = new()
+public static Dictionary<GPTMessageRole, string> RoleStrings = new()
 {
     { GPTMessageRole.System, "system" },
     { GPTMessageRole.User, "user" },
     { GPTMessageRole.Assistant, "assistant" } 
 };
 
+public class GPTMessageRoleConverter : JsonConverter<GPTMessageRole>
+{
+    public override GPTMessageRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+       throw new NotImplementedException(); 
+    }
 
+    public override void Write(Utf8JsonWriter writer, GPTMessageRole value, JsonSerializerOptions options)
+    {
+        writer.WriteString("role", RoleStrings[value]); 
+    }
+}

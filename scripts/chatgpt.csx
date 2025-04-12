@@ -89,11 +89,11 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         PrintResponses(gptResponse.Choices);
 
-        //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
-        // TODO replace with chatgpt-io.SaveFile
-            // add TokenUsage to sent Prompt
-            // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
-            // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
+        string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
+
+        conversation.Add(new GPTMessage(GPTMessageRole.Assistant, responseAggregate, true));
+
+        SaveFile(new GPTJson() { Messages = conversation }, args.Filename, args.ContinueChatFromFile);
     }
     catch (Exception ex)
     {
