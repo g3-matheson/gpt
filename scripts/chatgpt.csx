@@ -91,7 +91,7 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
 
-        conversation.Add(new GPTMessage(GPTMessageRole.Assistant, responseAggregate, true));
+        conversation.Add(new GPTMessage(GPTMessageRole.Assistant, responseAggregate, true) { TokensOut = gptResponse.TokenUsage.CompletionTokens });
 
         SaveFile(new GPTJson() { Messages = conversation }, args.Filename, args.ContinueChatFromFile);
     }

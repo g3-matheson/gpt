@@ -30,12 +30,15 @@ public GPTJson LoadFile(string filename)
             // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
             // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
 public void SaveFile(GPTJson conversation, string filename, bool append = false)
-{
-   
+{  
     GPTMessage systemMessage = conversation.Messages.First((GPTMessage m) => m.Role == GPTMessageRole.System);
     if (systemMessage.NewMessage)
     {
         append = false;
+    }
+    else
+    {
+        conversation.Messages.RemoveAll(m => !m.NewMessage);
     }
 
     string s = JsonSerializer.Serialize(conversation);
