@@ -3,7 +3,6 @@
     Kat Matheson 
 */
 
-#load "./chatgpt-data.csx"
 #load "./chatgpt-parser.csx"
 #load "./chatgpt-io.csx"
 
@@ -35,13 +34,12 @@ async Task AskChatGpt(IList<string> cliArgs)
 {
     try
     {
-
-        GPTArgumentParser args = GPTArgumentParser.Instance;
+        GPTArgumentParser args = GPTArgumentParser.Instance; 
 
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
 
-        List<GPTMessage> conversation = [];
+        List<GPTMessage> conversation = new();
 
         if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
         {
@@ -49,13 +47,12 @@ async Task AskChatGpt(IList<string> cliArgs)
             conversation.AddRange(previousJson.Messages);
         }
 
-        List<GPTMessage> currentConversation =
-        [
+        List<GPTMessage> currentConversation = new() {
             new GPTMessage(GPTMessageRole.User, args.UserMessage)
-        ];
+        };
 
         if (!string.IsNullOrEmpty(args.SystemMessage))
-        {  
+        {
             // avoid duplicate system messages, keep it at the top
             conversation.Remove(new GPTMessage(GPTMessageRole.System, string.Empty));
             conversation.Insert(0, new GPTMessage(GPTMessageRole.System, args.SystemMessage, true));
@@ -71,6 +68,7 @@ async Task AskChatGpt(IList<string> cliArgs)
         }; 
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
+        if (args.Debug) { Console.WriteLine(jsonRequest); }
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
     
         HttpResponseMessage response = await client.PostAsync(ApiURL, content);
@@ -91,14 +89,17 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
 
-        conversation.Add(new GPTMessage(GPTMessageRole.Assistant, responseAggregate, true) { TokensOut = gptResponse.TokenUsage.CompletionTokens });
+        GPTMessage gptm = new(GPTMessageRole.Assistant, responseAggregate, true)
+        {
+            TokensOut = gptResponse.TokenUsage.CompletionTokens
+        };
+        conversation.Add(gptm);
 
-        SaveFile(new GPTJson() { Messages = conversation }, args.Filename, args.ContinueChatFromFile);
+        SaveFile(new GPTJson(conversation), args.Filename, args.ContinueChatFromFile);
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error: {ex.Message}");
-        Console.WriteLine(GPTArgumentParser.Instance.ToString());
     }
 }
 

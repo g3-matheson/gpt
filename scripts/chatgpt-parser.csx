@@ -13,6 +13,11 @@ public abstract class IArgumentParser
 {
     public bool TryParse(IList<string> args)
     {
+        for(int i = 0; i < args.Count; i++)
+        {
+            Console.WriteLine($"arg {i}: {args[i]}");
+        }
+
         try
         { 
             for(int i = 0; i < args.Count; i++)
@@ -48,7 +53,21 @@ public class GPTArgumentParser : IArgumentParser
 { 
     private static GPTArgumentParser _instance;
 
-    private GPTArgumentParser() { }
+    private GPTArgumentParser() { 
+        Flags = new()
+        {
+            { "-d",            (string s) => { Debug = true; }},
+            { "--q",            (string s) => { UserMessage = s; }},
+            { "--f",            (string s) => { Filename = s; }},
+            { "--max-tokens",   SetMaxTokens },  
+            { "--mt",           SetMaxTokens },
+            { "-used",          (string s) => { TokensUsed = true; }}, 
+            { "--continue",
+                (string s) => { ContinueChatFromFile = true; Filename = s; }},
+            { "--c",
+                (string s) => { ContinueChatFromFile = true; Filename = s; }}
+        };
+    }
 
     public static GPTArgumentParser Instance
     {
@@ -76,19 +95,8 @@ public class GPTArgumentParser : IArgumentParser
     public bool TokensLeft { get; private set; } = false;
     public bool ContinueChatFromFile { get; private set; } = false;
     public string Filename { get; set; }
-    protected override Dictionary<string, Action<string>> Flags { get; set; } = new() 
-    {
-        { "--q",            (string s) => { Instance.UserMessage = s; }},
-        { "--f",            (string s) => { Instance.Filename = s; }},
-        { "--max-tokens",   Instance.SetMaxTokens },  
-        { "--mt",           Instance.SetMaxTokens },
-        { "-used",          (string s) => { Instance.TokensUsed = true; }}, 
-        { "--continue",
-            (string s) => { Instance.ContinueChatFromFile = true; Instance.Filename = s; }},
-        { "--c",
-            (string s) => { Instance.ContinueChatFromFile = true; Instance.Filename = s; }}
-    };
-
+    protected override Dictionary<string, Action<string>> Flags { get; set; } 
+    
     public override string ToString()
     {
         StringBuilder sb = new();

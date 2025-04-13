@@ -10,13 +10,16 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
+string ResponseFolder = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    "chatgpt", "responses");
 
 public GPTJson LoadFile(string filename)
 {
-    if (File.Exists(Path.Combine(ResponseFolder, filename)))
+    string filepath = Path.Combine(ResponseFolder, filename);
+    if (File.Exists(filepath))
     {
-        GPTJson result = JsonSerializer.Deserialize<GPTJson>(File.ReadAllText(filename));
+        GPTJson result = JsonSerializer.Deserialize<GPTJson>(File.ReadAllText(filepath));
         return result;
     }
     return null; 
@@ -24,13 +27,15 @@ public GPTJson LoadFile(string filename)
 
 // conversation should only contain NEW messages
 
-        //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
+        //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpRoleStringsty(args.Filename) ? GetFilename() : args.Filename);
         // TODO replace with chatgpt-io.SaveFile
             // add TokenUsage to sent Prompt
             // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
             // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
 public void SaveFile(GPTJson conversation, string filename, bool append = false)
 {  
+    string filepath = Path.Combine(ResponseFolder, filename);
+
     GPTMessage systemMessage = conversation.Messages.First((GPTMessage m) => m.Role == GPTMessageRole.System);
     if (systemMessage.NewMessage)
     {
@@ -42,13 +47,14 @@ public void SaveFile(GPTJson conversation, string filename, bool append = false)
     }
 
     string s = JsonSerializer.Serialize(conversation);
-    if (append && File.Exists(Path.Combine(ResponseFolder, filename)))
+    Console.WriteLine("SaveFile: \n${s}");
+    if (append && File.Exists(filepath))
     {
-        File.AppendAllText($"{filename}.json", s);
+        File.AppendAllText($"{filepath}.json", s);
     }
     else 
     {
-        File.WriteAllText($"{filename}.json", s);
+        File.WriteAllText($"{filepath}.json", s);
     }
 }
 

@@ -1,4 +1,5 @@
 **** in PRIO
+* separate AskChatGpt() method into parts for easier debugging
 * implement GPTMessageRoleConverter.Read for incoming roles
 
 * parser: add 'read from this file" functionality

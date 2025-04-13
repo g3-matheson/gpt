@@ -20,7 +20,7 @@ class ResponseWrapper
 }
 
 class ResponseChoice
-{
+{[JsonIgnore(Condition=JsonIgnoreCondition.Always)]
     [JsonPropertyName("index")] public int Index { get; set; }
     [JsonPropertyName("message")] public ResponseMessage Response { get; set; }
     [JsonPropertyName("logprobs")] public object LogProbs { get; set; }
@@ -46,6 +46,10 @@ class ResponseTokenUsage
 
 public class GPTJson
 {
+    public GPTJson(IEnumerable<GPTMessage> conversation)
+    {
+        Messages = conversation.ToList();
+    }
     [JsonPropertyName("messages")] public List<GPTMessage> Messages { get; set; }
 }
 
@@ -94,16 +98,28 @@ public enum GPTMessageRole
  
 public static Dictionary<GPTMessageRole, string> RoleStrings = new()
 {
-    { GPTMessageRole.System, "system" },
-    { GPTMessageRole.User, "user" },
+    { GPTMessageRole.System,    "system" },
+    { GPTMessageRole.User,      "user" },
     { GPTMessageRole.Assistant, "assistant" } 
+};
+
+public static Dictionary<string, GPTMessageRole> StringRoles = new()
+{
+    { "system"  , GPTMessageRole.System },
+    { "user"    , GPTMessageRole.User   },
+    { "assistant", GPTMessageRole.Assistant }
 };
 
 public class GPTMessageRoleConverter : JsonConverter<GPTMessageRole>
 {
     public override GPTMessageRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-       throw new NotImplementedException();
+       if (reader.TokenType != JsonTokenType.PropertyName)
+       {
+            throw new JsonException("GPTMessageRole.Read: \"role\" missing.");
+       }
+
+        return StringRoles[reader.GetString()];
     }
 
     public override void Write(Utf8JsonWriter writer, GPTMessageRole value, JsonSerializerOptions options)
