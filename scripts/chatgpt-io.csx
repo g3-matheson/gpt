@@ -16,10 +16,13 @@ string ResponseFolder = Path.Combine(
 
 public GPTJson LoadFile(string filename)
 {
-    string filepath = Path.Combine(ResponseFolder, filename);
+    string filepath = string.Concat(Path.Combine(ResponseFolder, filename), ".json");
+    Console.WriteLine($"LoadFile filepath = {filepath}");
     if (File.Exists(filepath))
     {
-        GPTJson result = JsonSerializer.Deserialize<GPTJson>(File.ReadAllText(filepath));
+        string fileContents = File.ReadAllText(filepath);
+        Console.WriteLine($"LoadFile fileContents:\n{fileContents}");
+        GPTJson result = JsonSerializer.Deserialize<GPTJson>(fileContents);
         return result;
     }
     return null; 
@@ -36,14 +39,14 @@ public void SaveFile(GPTJson conversation, string filename, bool append = false)
 {  
     string filepath = Path.Combine(ResponseFolder, filename);
 
-    GPTMessage systemMessage = conversation.Messages.First((GPTMessage m) => m.Role == GPTMessageRole.System);
-    if (systemMessage.NewMessage)
+    GPTMessage systemMessage = conversation.Messages.First((GPTMessage m) => m.Role == "system");
+    if (systemMessage.NewMessage.HasValue && systemMessage.NewMessage.Value)
     {
         append = false;
     }
     else
     {
-        conversation.Messages.RemoveAll(m => !m.NewMessage);
+        conversation.Messages.RemoveAll(m => !m.NewMessage.HasValue || !m.NewMessage.Value);
     }
 
     string s = JsonSerializer.Serialize(conversation);

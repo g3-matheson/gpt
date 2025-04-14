@@ -43,22 +43,35 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
         {
-            GPTJson previousJson = LoadFile(args.Filename);
-            conversation.AddRange(previousJson.Messages);
+            GPTJson previousJson = LoadFile(args.Filename); 
+            if (previousJson == null)
+            {
+                Console.WriteLine($"Error loading file: {args.Filename}.json");
+            }
+            else
+            {
+                conversation.AddRange(previousJson.Messages);
+            }
+            
+
+        Console.WriteLine("clear");
         }
 
+
+        
+
         List<GPTMessage> currentConversation = new() {
-            new GPTMessage(GPTMessageRole.User, args.UserMessage)
+            new GPTMessage("user", args.UserMessage)
         };
 
         if (!string.IsNullOrEmpty(args.SystemMessage))
         {
             // avoid duplicate system messages, keep it at the top
-            conversation.Remove(new GPTMessage(GPTMessageRole.System, string.Empty));
-            conversation.Insert(0, new GPTMessage(GPTMessageRole.System, args.SystemMessage, true));
+            conversation.Remove(new GPTMessage("system", string.Empty));
+            conversation.Insert(0, new GPTMessage("system", args.SystemMessage, true));
         }
 
-        conversation.Add(new GPTMessage(GPTMessageRole.User, args.UserMessage, true));
+        conversation.Add(new GPTMessage("user", args.UserMessage, true));
 
         var requestBody = new
         {
@@ -89,7 +102,7 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
 
-        GPTMessage gptm = new(GPTMessageRole.Assistant, responseAggregate, true)
+        GPTMessage gptm = new("assistant", responseAggregate, true)
         {
             TokensOut = gptResponse.TokenUsage.CompletionTokens
         };
