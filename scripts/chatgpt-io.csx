@@ -12,8 +12,7 @@ using System.Text.Json.Serialization;
 using System.Xml;
 
 string ResponseFolder = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-    "chatgpt", "responses");
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
 
 public GPTJson LoadFile(string filename)
 {
@@ -56,12 +55,6 @@ public void SaveFile(GPTJson conversation, string filename)
 {  
     string filepath = Path.Combine(ResponseFolder, filename);
 
-    Console.WriteLine($"SaveLine conversation:");
-    foreach(GPTMessage msg in conversation.Messages)
-    {
-        Console.WriteLine(msg);
-    }
-
     string jsonString = JsonSerializer.Serialize(conversation);
     using var jsonDocument = JsonDocument.Parse(jsonString);
     var options = new JsonWriterOptions
@@ -78,10 +71,5 @@ public void SaveFile(GPTJson conversation, string filename)
     string formattedJson = Encoding.UTF8.GetString(stream.ToArray());
 
     File.WriteAllLines($"{filepath}.json", formattedJson.Split(Environment.NewLine));
-    
-    
+       
 }
-
-// use chatgpt-data.GPTJson here to store conversation and update accordingly
-// expose public methods that add or remove from this structure
-    // e.g AddPrompt() that adds the user message in the right place

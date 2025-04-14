@@ -67,7 +67,9 @@ async Task AskChatGpt(IList<string> cliArgs)
         }; 
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
+
         if (args.Debug) { Console.WriteLine(jsonRequest); }
+
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
     
         HttpResponseMessage response = await client.PostAsync(ApiURL, content);
@@ -115,6 +117,5 @@ void PrintResponses(List<ResponseChoice> choices)
         Console.WriteLine(response);
     }
 }
-
 
 string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
