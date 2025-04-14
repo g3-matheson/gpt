@@ -57,11 +57,10 @@ public class GPTJson
 public class GPTMessage
 {
     public GPTMessage() {}
-    public GPTMessage(string role, string message, bool newMessage = false)
+    public GPTMessage(string role, string message = "")
     {
         Role = role;
         Message = message;
-        NewMessage = newMessage;
     }
 
     [JsonPropertyName("role")]
@@ -69,7 +68,16 @@ public class GPTMessage
     [JsonPropertyName("content")] public string Message { get; set; }
     [JsonPropertyName("tokens-used-in")] public int? TokensIn { get; set; }
     [JsonPropertyName("tokens-used-out")] public int? TokensOut { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.Always)] public bool? NewMessage { get; set; }
+
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+        sb.AppendLine($"Role: {Role}");
+        sb.AppendLine($"Content: {Message}");
+        sb.AppendLine($"Tokens(in/out): ({TokensIn}/{TokensOut})");
+
+        return sb.ToString();
+    }
 
     public bool Equals(GPTMessage other)
     {

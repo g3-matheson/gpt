@@ -13,10 +13,10 @@ public abstract class IArgumentParser
 {
     public bool TryParse(IList<string> args)
     {
-        for(int i = 0; i < args.Count; i++)
-        {
-            Console.WriteLine($"arg {i}: {args[i]}");
-        }
+        //for(int i = 0; i < args.Count; i++)
+        //{
+            //Console.WriteLine($"arg {i}: {args[i]}");
+        //}
 
         try
         { 
@@ -58,6 +58,8 @@ public class GPTArgumentParser : IArgumentParser
         {
             { "-d",            (string s) => { Debug = true; }},
             { "--q",            (string s) => { UserMessage = s; }},
+            { "--s",            (string s) => { SystemMessage = s; }},
+            { "--system",       (string s) => { SystemMessage = s; }},
             { "--f",            (string s) => { Filename = s; }},
             { "--max-tokens",   SetMaxTokens },  
             { "--mt",           SetMaxTokens },

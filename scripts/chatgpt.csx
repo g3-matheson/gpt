@@ -44,34 +44,20 @@ async Task AskChatGpt(IList<string> cliArgs)
         if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
         {
             GPTJson previousJson = LoadFile(args.Filename); 
-            if (previousJson == null)
-            {
-                Console.WriteLine($"Error loading file: {args.Filename}.json");
-            }
-            else
+            if (previousJson != null)
             {
                 conversation.AddRange(previousJson.Messages);
             }
-            
-
-        Console.WriteLine("clear");
         }
-
-
-        
-
-        List<GPTMessage> currentConversation = new() {
-            new GPTMessage("user", args.UserMessage)
-        };
 
         if (!string.IsNullOrEmpty(args.SystemMessage))
         {
             // avoid duplicate system messages, keep it at the top
             conversation.Remove(new GPTMessage("system", string.Empty));
-            conversation.Insert(0, new GPTMessage("system", args.SystemMessage, true));
+            conversation.Insert(0, new GPTMessage("system", args.SystemMessage));
         }
 
-        conversation.Add(new GPTMessage("user", args.UserMessage, true));
+        conversation.Add(new GPTMessage("user", args.UserMessage));
 
         var requestBody = new
         {
@@ -102,13 +88,13 @@ async Task AskChatGpt(IList<string> cliArgs)
 
         string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
 
-        GPTMessage gptm = new("assistant", responseAggregate, true)
+        GPTMessage gptm = new("assistant", responseAggregate)
         {
             TokensOut = gptResponse.TokenUsage.CompletionTokens
         };
         conversation.Add(gptm);
 
-        SaveFile(new GPTJson(conversation), args.Filename, args.ContinueChatFromFile);
+        SaveFile(new GPTJson(conversation), args.Filename ?? GetFilename());
     }
     catch (Exception ex)
     {
@@ -131,4 +117,4 @@ void PrintResponses(List<ResponseChoice> choices)
 }
 
 
-string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".txt";
+string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");

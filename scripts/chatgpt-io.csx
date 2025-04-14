@@ -9,6 +9,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml;
 
 string ResponseFolder = Path.Combine(
     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -16,15 +17,31 @@ string ResponseFolder = Path.Combine(
 
 public GPTJson LoadFile(string filename)
 {
-    string filepath = string.Concat(Path.Combine(ResponseFolder, filename), ".json");
-    Console.WriteLine($"LoadFile filepath = {filepath}");
-    if (File.Exists(filepath))
-    {
-        string fileContents = File.ReadAllText(filepath);
-        Console.WriteLine($"LoadFile fileContents:\n{fileContents}");
-        GPTJson result = JsonSerializer.Deserialize<GPTJson>(fileContents);
-        return result;
+    try
+    {       
+        string filepath = string.Concat(Path.Combine(ResponseFolder, filename), ".json");
+        Console.WriteLine($"LoadFile filepath = {filepath}");
+        if (File.Exists(filepath))
+        {
+            string fileContents = File.ReadAllText(filepath);
+            Console.WriteLine($"LoadFile fileContents:\n{fileContents}");
+            try
+            {
+                GPTJson result = JsonSerializer.Deserialize<GPTJson>(fileContents); 
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"LoadFile Error: {e.Message}");
+                return null;
+            }
+        }
     }
+    catch (Exception e)
+    {
+        Console.WriteLine($"chatgpt-io.LoadFile error: {e.Message}");
+    }
+    
     return null; 
 }
 
@@ -35,30 +52,34 @@ public GPTJson LoadFile(string filename)
             // add TokenUsage to sent Prompt
             // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
             // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
-public void SaveFile(GPTJson conversation, string filename, bool append = false)
+public void SaveFile(GPTJson conversation, string filename)
 {  
     string filepath = Path.Combine(ResponseFolder, filename);
 
-    GPTMessage systemMessage = conversation.Messages.First((GPTMessage m) => m.Role == "system");
-    if (systemMessage.NewMessage.HasValue && systemMessage.NewMessage.Value)
+    Console.WriteLine($"SaveLine conversation:");
+    foreach(GPTMessage msg in conversation.Messages)
     {
-        append = false;
-    }
-    else
-    {
-        conversation.Messages.RemoveAll(m => !m.NewMessage.HasValue || !m.NewMessage.Value);
+        Console.WriteLine(msg);
     }
 
-    string s = JsonSerializer.Serialize(conversation);
-    Console.WriteLine("SaveFile: \n${s}");
-    if (append && File.Exists(filepath))
+    string jsonString = JsonSerializer.Serialize(conversation);
+    using var jsonDocument = JsonDocument.Parse(jsonString);
+    var options = new JsonWriterOptions
     {
-        File.AppendAllText($"{filepath}.json", s);
-    }
-    else 
+        Indented = true
+    };
+
+    using var stream = new MemoryStream();
+    using (var writer = new Utf8JsonWriter(stream, options))
     {
-        File.WriteAllText($"{filepath}.json", s);
+        jsonDocument.WriteTo(writer);
     }
+
+    string formattedJson = Encoding.UTF8.GetString(stream.ToArray());
+
+    File.WriteAllLines($"{filepath}.json", formattedJson.Split(Environment.NewLine));
+    
+    
 }
 
 // use chatgpt-data.GPTJson here to store conversation and update accordingly
