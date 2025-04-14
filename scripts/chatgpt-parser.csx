@@ -13,11 +13,6 @@ public abstract class IArgumentParser
 {
     public bool TryParse(IList<string> args)
     {
-        //for(int i = 0; i < args.Count; i++)
-        //{
-            //Console.WriteLine($"arg {i}: {args[i]}");
-        //}
-
         try
         { 
             for(int i = 0; i < args.Count; i++)
@@ -80,7 +75,6 @@ public class GPTArgumentParser : IArgumentParser
         }
     }
 
-    // input arguments
     public string Model { get; private set; } = "gpt-4o";
     public int MaxTokens { get; private set; } = _defaultMaxTokens;
 
@@ -88,7 +82,7 @@ public class GPTArgumentParser : IArgumentParser
     public string SystemMessage { get; private set; }
     public string UserMessage { get; private set; }
 
-    // Model's responses fed back into itself?
+    // Model's responses fed back into itself
     public string AssistantMessage { get; private set; }
 
     // flags

@@ -20,7 +20,7 @@ readonly string ApiURL = "https://api.openai.com/v1/chat/completions";
 
 if (Args.Count < 1)
 {
-    Console.WriteLine("Usage: gpt --q \"prompt\" --max-tokens MaxTokens --f \"filename\"");
+    Console.WriteLine("Usage: gpt --q \"prompt\" --s \"system message\" --c continue-filename --mt MaxTokens");
     return;
 }
 

@@ -44,13 +44,6 @@ public GPTJson LoadFile(string filename)
     return null; 
 }
 
-// conversation should only contain NEW messages
-
-        //WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpRoleStringsty(args.Filename) ? GetFilename() : args.Filename);
-        // TODO replace with chatgpt-io.SaveFile
-            // add TokenUsage to sent Prompt
-            // transform response into GPTMessage with GPTMessageRole.Assistant, include TokenUsage
-            // if System message was overwritten, overwrite entire file (check for GPTMessage with Role=System .NewMessage)
 public void SaveFile(GPTJson conversation, string filename)
 {  
     string filepath = Path.Combine(ResponseFolder, filename);
