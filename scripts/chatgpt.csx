@@ -57,13 +57,18 @@ async Task AskChatGpt(IList<string> cliArgs)
             conversation.Insert(0, new GPTMessage("system", args.SystemMessage));
         }
 
-        conversation.Add(new GPTMessage("user", args.UserMessage));
+        GPTMessage userMessage = new("user", args.UserMessage)
+        {
+            Temperature = args.Temperature
+        };
+        conversation.Add(userMessage);
 
         var requestBody = new
         {
             model = args.Model,
             messages = conversation,
-            max_tokens = args.MaxTokens
+            max_tokens = args.MaxTokens,
+            temperature = args.Temperature
         }; 
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);

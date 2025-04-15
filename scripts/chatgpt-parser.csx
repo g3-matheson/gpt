@@ -62,7 +62,9 @@ public class GPTArgumentParser : IArgumentParser
             { "--continue",
                 (string s) => { ContinueChatFromFile = true; Filename = s; }},
             { "--c",
-                (string s) => { ContinueChatFromFile = true; Filename = s; }}
+                (string s) => { ContinueChatFromFile = true; Filename = s; }},
+            { "--t",
+                (string s) => { Temperature = float.TryParse(s, out float f)? f : 1.0f; }}
         };
     }
 
@@ -91,6 +93,7 @@ public class GPTArgumentParser : IArgumentParser
     public bool TokensLeft { get; private set; } = false;
     public bool ContinueChatFromFile { get; private set; } = false;
     public string Filename { get; set; }
+    public float Temperature { get; set; } = 1.0f;
     protected override Dictionary<string, Action<string>> Flags { get; set; } 
     
     public override string ToString()
@@ -100,7 +103,7 @@ public class GPTArgumentParser : IArgumentParser
         sb.AppendLine($"Prompt: {UserMessage}");
         sb.AppendLine($"MaxTokens: {MaxTokens}");
         sb.AppendLine($"TokensUsed: {TokensUsed}");
-
+        sb.AppendLine($"Temperature: {Temperature}");
         return sb.ToString();
     }
 

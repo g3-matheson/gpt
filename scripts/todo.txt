@@ -1,4 +1,6 @@
 **** in PRIO
+* record OBS video of .json functionality as-is
+
 * add function to file parser to get total tokens in the conversation
 
 * change to dotnet build to speed up program, it's getting slower as more functionality is added

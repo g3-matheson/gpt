@@ -19,11 +19,9 @@ public GPTJson LoadFile(string filename)
     try
     {       
         string filepath = string.Concat(Path.Combine(ResponseFolder, filename), ".json");
-        Console.WriteLine($"LoadFile filepath = {filepath}");
         if (File.Exists(filepath))
         {
             string fileContents = File.ReadAllText(filepath);
-            Console.WriteLine($"LoadFile fileContents:\n{fileContents}");
             try
             {
                 GPTJson result = JsonSerializer.Deserialize<GPTJson>(fileContents); 

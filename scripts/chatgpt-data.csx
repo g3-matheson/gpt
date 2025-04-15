@@ -69,6 +69,10 @@ public class GPTMessage
     [JsonPropertyName("tokens-used-in")] public int? TokensIn { get; set; }
     [JsonPropertyName("tokens-used-out")] public int? TokensOut { get; set; }
 
+    [JsonPropertyName("temperature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float? Temperature { get; set; } = 1.0f;
+
     public override string ToString()
     {
         StringBuilder sb = new();
