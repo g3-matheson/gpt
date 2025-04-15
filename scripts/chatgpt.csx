@@ -3,8 +3,8 @@
     Kat Matheson 
 */
 
-#load "./chatgpt-data.csx"
 #load "./chatgpt-parser.csx"
+#load "./chatgpt-io.csx"
 
 using System.IO;
 using System.Net.Http;
@@ -16,11 +16,11 @@ using System.Threading.Tasks;
 
 readonly string ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 readonly string ApiURL = "https://api.openai.com/v1/chat/completions";
-string ResponseFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "chatgpt", "responses");
+
 
 if (Args.Count < 1)
 {
-    Console.WriteLine("Usage: gpt --q \"prompt\" --max-tokens MaxTokens --f \"filename\"");
+    Console.WriteLine("Usage: gpt --q \"prompt\" --s \"system message\" --c continue-filename --mt MaxTokens");
     return;
 }
 
@@ -34,19 +34,47 @@ async Task AskChatGpt(IList<string> cliArgs)
 {
     try
     {
-        GPTArgumentParser args = GPTArgumentParser.Instance;
+        GPTArgumentParser args = GPTArgumentParser.Instance; 
 
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
-        
+
+        List<GPTMessage> conversation = new();
+
+        if (args.ContinueChatFromFile && !string.IsNullOrEmpty(args.Filename))
+        {
+            GPTJson previousJson = LoadFile(args.Filename); 
+            if (previousJson != null)
+            {
+                conversation.AddRange(previousJson.Messages);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(args.SystemMessage))
+        {
+            // avoid duplicate system messages, keep it at the top
+            conversation.Remove(new GPTMessage("system", string.Empty));
+            conversation.Insert(0, new GPTMessage("system", args.SystemMessage));
+        }
+
+        GPTMessage userMessage = new("user", args.UserMessage)
+        {
+            Temperature = args.Temperature
+        };
+        conversation.Add(userMessage);
+
         var requestBody = new
         {
             model = args.Model,
-            messages = new[] {  new { role = "user", content = args.UserMessage } },
-            max_tokens = args.MaxTokens
-        };
+            messages = conversation,
+            max_tokens = args.MaxTokens,
+            temperature = args.Temperature
+        }; 
 
         string jsonRequest = JsonSerializer.Serialize(requestBody);
+
+        if (args.Debug) { Console.WriteLine(jsonRequest); }
+
         HttpContent content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
     
         HttpResponseMessage response = await client.PostAsync(ApiURL, content);
@@ -63,44 +91,36 @@ async Task AskChatGpt(IList<string> cliArgs)
     
         if (args.TokensUsed) Console.WriteLine($"Tokens used: {gptResponse.TokenUsage.CompletionTokens}.\n");
 
-        int nChoices = gptResponse.Choices.Count;
-        List<string> messages = gptResponse.Choices.Select(
-            choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
-                                    choice.Response.Message, Environment.NewLine)).ToList();
-        PrintMessages(messages);
-        WriteMessagesToFile(args.UserMessage, messages, string.IsNullOrEmpty(args.Filename) ? GetFilename() : args.Filename);
+        PrintResponses(gptResponse.Choices);
+
+        string responseAggregate = string.Join(Environment.NewLine, gptResponse.Choices.Select(c => c.Response.Message));
+
+        GPTMessage gptm = new("assistant", responseAggregate)
+        {
+            TokensOut = gptResponse.TokenUsage.CompletionTokens
+        };
+        conversation.Add(gptm);
+
+        SaveFile(new GPTJson(conversation), args.Filename ?? GetFilename());
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error: {ex.Message}");
-        Console.WriteLine(GPTArgumentParser.Instance.ToString());
     }
 }
 
-void PrintMessages(IEnumerable<string> messages)
+void PrintResponses(List<ResponseChoice> choices)
 {
-    foreach (string message in messages)
+
+    int nChoices = choices.Count;
+    List<string> responses = choices.Select(
+        choice => string.Concat(nChoices> 1? $"({choice.Index}/{nChoices})" : "",
+                                choice.Response.Message, Environment.NewLine)).ToList();
+
+    foreach (string response in responses)
     {
-        Console.WriteLine(message);
+        Console.WriteLine(response);
     }
 }
 
-void WriteMessagesToFile(string prompt, IEnumerable<string> messages, string filename)
-{
-    string writePath = Path.Combine(ResponseFolder, filename);
-    List<string> output = new() { $"===Prompt===\n{prompt}\n\n===Response===" };
-    output.AddRange(messages);
-
-    if(!File.Exists(writePath))
-    {
-        File.WriteAllLines(writePath, output);
-    }    
-    else
-    {
-        File.AppendAllLines(writePath, output);
-    }
-
-    File.AppendAllText(writePath, Environment.NewLine);
-}
-
-string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".txt";
+string GetFilename() => DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");

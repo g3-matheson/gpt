@@ -48,7 +48,25 @@ public class GPTArgumentParser : IArgumentParser
 { 
     private static GPTArgumentParser _instance;
 
-    private GPTArgumentParser() { }
+    private GPTArgumentParser() { 
+        Flags = new()
+        {
+            { "-d",            (string s) => { Debug = true; }},
+            { "--q",            (string s) => { UserMessage = s; }},
+            { "--s",            (string s) => { SystemMessage = s; }},
+            { "--system",       (string s) => { SystemMessage = s; }},
+            { "--f",            (string s) => { Filename = s; }},
+            { "--max-tokens",   SetMaxTokens },  
+            { "--mt",           SetMaxTokens },
+            { "-used",          (string s) => { TokensUsed = true; }}, 
+            { "--continue",
+                (string s) => { ContinueChatFromFile = true; Filename = s; }},
+            { "--c",
+                (string s) => { ContinueChatFromFile = true; Filename = s; }},
+            { "--t",
+                (string s) => { Temperature = float.TryParse(s, out float f)? f : 1.0f; }}
+        };
+    }
 
     public static GPTArgumentParser Instance
     {
@@ -59,15 +77,14 @@ public class GPTArgumentParser : IArgumentParser
         }
     }
 
-    // input arguments
     public string Model { get; private set; } = "gpt-4o";
-    public int MaxTokens { get; private set; } = _defaultMaxTokens; // out, not in
+    public int MaxTokens { get; private set; } = _defaultMaxTokens;
 
     // Sets behavioral context/guidelines
     public string SystemMessage { get; private set; }
     public string UserMessage { get; private set; }
 
-    // Model's responses fed back into itself?
+    // Model's responses fed back into itself
     public string AssistantMessage { get; private set; }
 
     // flags
@@ -76,28 +93,9 @@ public class GPTArgumentParser : IArgumentParser
     public bool TokensLeft { get; private set; } = false;
     public bool ContinueChatFromFile { get; private set; } = false;
     public string Filename { get; set; }
-    protected override Dictionary<string, Action<string>> Flags { get; set; } = new() 
-    {
-        { "--q", 
-            (string s) => { Instance.UserMessage = s; }},
-        { "--f",
-            (string s) => { Instance.Filename = s; }},
-        { "--max-tokens",
-            (string s) => { Instance.MaxTokens = Int32.TryParse(s, out int opt) ? opt : _defaultMaxTokens; }},  
-        { "-used",
-            (string s) => { Instance.TokensUsed = true; }}, 
-        { "--continue",
-            (string s) => { 
-                Instance.ContinueChatFromFile = Boolean.TryParse(s, out bool result) && result; 
-                // AssistantMessage = ...
-                    /* - open file, explain context to chatgpt in system message that you are
-                        sending it previous responses and prompts -- TBD what AssistantMessage role is in this
-                                                                    -- i.e: send only gpt responses? they need link to prompts
-                    - 
-                */
-                }},
-    };
-
+    public float Temperature { get; set; } = 1.0f;
+    protected override Dictionary<string, Action<string>> Flags { get; set; } 
+    
     public override string ToString()
     {
         StringBuilder sb = new();
@@ -105,8 +103,13 @@ public class GPTArgumentParser : IArgumentParser
         sb.AppendLine($"Prompt: {UserMessage}");
         sb.AppendLine($"MaxTokens: {MaxTokens}");
         sb.AppendLine($"TokensUsed: {TokensUsed}");
-
+        sb.AppendLine($"Temperature: {Temperature}");
         return sb.ToString();
+    }
+
+    private void SetMaxTokens(string s)
+    {
+        MaxTokens = Int32.TryParse(s, out int i) ? i : _defaultMaxTokens;
     }
 
     private static readonly int _defaultMaxTokens = 1000;

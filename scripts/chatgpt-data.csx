@@ -4,13 +4,14 @@
 
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 class ResponseWrapper
 {
     [JsonPropertyName("id")] public string ID { get; set; }
     [JsonPropertyName("object")] public string Object { get; set; }
-    [JsonPropertyName("created")] public long TimeUTC { get; set; }
+    [JsonPropertyName("created")] public long? TimeUTC { get; set; }
     [JsonPropertyName("model")] public string Model { get; set; }
     [JsonPropertyName("choices")] public List<ResponseChoice> Choices { get; set; }
     [JsonPropertyName("usage")] public ResponseTokenUsage TokenUsage { get; set; }
@@ -20,7 +21,7 @@ class ResponseWrapper
 
 class ResponseChoice
 {
-    [JsonPropertyName("index")] public int Index { get; set; }
+    [JsonPropertyName("index")] public int? Index { get; set; }
     [JsonPropertyName("message")] public ResponseMessage Response { get; set; }
     [JsonPropertyName("logprobs")] public object LogProbs { get; set; }
     [JsonPropertyName("finish_reason")] public string FinishReason { get; set; }
@@ -36,38 +37,70 @@ class ResponseMessage
 
 class ResponseTokenUsage
 {
-    [JsonPropertyName("prompt_tokens")] public int PromptTokens { get; set; }
-    [JsonPropertyName("completion_tokens")] public int CompletionTokens { get; set; }
-    [JsonPropertyName("total_tokens")] public int TotalTokens { get; set; }
+    [JsonPropertyName("prompt_tokens")] public int? PromptTokens { get; set; }
+    [JsonPropertyName("completion_tokens")] public int? CompletionTokens { get; set; }
+    [JsonPropertyName("total_tokens")] public int? TotalTokens { get; set; }
     [JsonPropertyName("prompt_tokens_details")] public Dictionary<string, int> PromptTokensDetails { get; set; }
     [JsonPropertyName("completion_tokens_details")] public Dictionary<string, int> CompletionTokensDetails { get; set; }
 }
 
-class GPTJson
+public class GPTJson
 {
+    public GPTJson() {} 
+    public GPTJson(IEnumerable<GPTMessage> conversation)
+    {
+        Messages = conversation.ToList();
+    }
     [JsonPropertyName("messages")] public List<GPTMessage> Messages { get; set; }
 }
 
-class GPTMessage
+public class GPTMessage
 {
-    [JsonPropertyName("role")] public GPTMessageRole Role { get; set; }
+    public GPTMessage() {}
+    public GPTMessage(string role, string message = "")
+    {
+        Role = role;
+        Message = message;
+    }
+
+    [JsonPropertyName("role")]
+    public string Role { get; set; }
     [JsonPropertyName("content")] public string Message { get; set; }
-    [JsonPropertyName("tokens-used-in")] public int TokensIn { get; set; }
-    [JsonPropertyName("tokens-used-out")] public int TokensOut { get; set; }
-}
+    [JsonPropertyName("tokens-used-in")] public int? TokensIn { get; set; }
+    [JsonPropertyName("tokens-used-out")] public int? TokensOut { get; set; }
 
-enum GPTMessageRole
-{
-    System,
-    User,
-    Assistant
-}
- 
-Dictionary<GPTMessageRole, string> RoleStrings = new()
-{
-    { GPTMessageRole.System, "system" },
-    { GPTMessageRole.User, "user" },
-    { GPTMessageRole.Assistant, "assistant" } 
-};
+    [JsonPropertyName("temperature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float? Temperature { get; set; } = 1.0f;
 
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+        sb.AppendLine($"Role: {Role}");
+        sb.AppendLine($"Content: {Message}");
+        sb.AppendLine($"Tokens(in/out): ({TokensIn}/{TokensOut})");
+
+        return sb.ToString();
+    }
+
+    public bool Equals(GPTMessage other)
+    {
+        if (other is null) return false;
+        if (this.Role == _system && other.Role == _system)
+        {
+            return true;
+        }
+        return Role == other.Role && Message == other.Message;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as GPTMessage);
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Role, Message);
+    }
+
+    private static readonly string _system = "system";
+
+}
 
