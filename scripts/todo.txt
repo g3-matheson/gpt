@@ -1,21 +1,17 @@
 **** in PRIO
-* record OBS video of .json functionality as-is
-
 * add function to file parser to get total tokens in the conversation
 
 * change to dotnet build to speed up program, it's getting slower as more functionality is added
-    * the "#load" are also getting confusing, as well as naming -- might need services or events etc.
-    * this .exe is absolutely needed since a lot of work breaks gpt 
-        and then i can't call it while working on it    
-    * chatgpt instructions:
-        - dotnet new console -n GPT
-        - rename .csx to .cs
-        - Program.cs should have static void Main(string[] args)
-        - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
-        - --self-contained false --> builds without .NET integrated inside
-            - don't forget to make it executable
+    - dotnet new console -n GPT
+    - rename .csx to .cs
+    - Program.cs should have static void Main(string[] args)
+    - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/linux
+    - --self-contained false --> builds without .NET integrated inside
+        - don't forget to make it executable! chmod +x
 
 * add functionality to send files by name as input
 
-* add Filename generation from ChatGPT itself. ask it what a 3 word summary would be for the convo,
+* add default Filename generation from ChatGPT itself. ask it what a 3 word (w1,w2,w3) summary would be for the convo,
 save the file as $"{date}-w1-w2-w3.json"
+
+* add CLI GUI + reading previous convos, make JSONs more human-readable
